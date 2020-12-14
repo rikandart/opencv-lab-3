@@ -1,32 +1,16 @@
-# Prerequisites
-*.d
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+/opencv-lab-2.vcxproj.filters
+/opencv-lab-2.vcxproj
+/opencv-lab-2.vcxproj.user
+/opencv-lab-2.sln
+/.vs/opencv-lab-2/v16
+/Debug
+/x64
+/.vs
+/opencv-lab-3.sln
+/opencv-lab-3.vcxproj
+/opencv-lab-3.vcxproj.filters
+/opencv-lab-3.vcxproj.user
