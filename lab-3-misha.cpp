@@ -1,4 +1,4 @@
-#define MISHA
+//#define MISHA
 #ifdef MISHA
 // opencv lib
 #include <opencv2/core.hpp>
@@ -16,10 +16,10 @@ using namespace cv;
 
 int main(int argc, char* argv[])
 {
-	Mat pic = imread("E:/kmeans_img.png");
+	Mat pic = imread("C:/vitr1.jpg");
 	Mat edit = Mat(pic.rows, pic.cols, CV_32F);
-	const int K = 5;
-	//нечет ряды, чет колонки
+	const int K = 10;
+	//чет ряды, нечет колонки
 	int centr_xy[K*2];
 	int rasst[K];
 	for (int i = 0; i < K; i++) {
