@@ -16,9 +16,6 @@
 #include <numeric>
 #include <math.h>
 
-#define THRESHOLD 65
-#define THRESHOLD_2 20
-
 using namespace cv;
 
 void show(const Mat& frame_1, const Mat& frame_2, const char* name_1, const char* name_2) {
