@@ -8,6 +8,7 @@
 
 // c++
 #include <iostream>
+#include <thread>
 #include <vector>
 #include <cstdlib>
 #include <random>
@@ -41,11 +42,11 @@ void show(const Mat& frame_1, const char* name_1) {
 }
 
 // генераци€ случайных индексов в матрице
-void generate_rand_indices(const Mat& data, const int K, std::vector<Point>& res) {
+void generate_rand_indices(const Mat& data, const unsigned K, std::vector<Point>& res) {
 	std::vector<unsigned> i_res, j_res;
 	std::default_random_engine generator;
-	std::normal_distribution<double> distribution_i(0, data.rows);
-	std::normal_distribution<double> distribution_j(0, data.cols);
+	std::normal_distribution<double> distribution_i(0, data.rows/1.5);
+	std::normal_distribution<double> distribution_j(0, data.cols/1.5);
 	unsigned rand_i = 0, rand_j = 0;
 	bool done = false;
 	while (!done) {
@@ -63,7 +64,7 @@ void generate_rand_indices(const Mat& data, const int K, std::vector<Point>& res
 }
 
 // заливка кластеров
-void cluster_fill(const int K, const std::vector<Point>& centroids,
+void cluster_fill(const unsigned K, const std::vector<Point>& centroids,
 				const std::vector<std::vector<Point>>& clusters, Mat& out) {
 	// заполним матрицу-результат дл€ отображени€ на экране
 	out = Mat(out.rows, out.cols, CV_32F);
@@ -74,44 +75,39 @@ void cluster_fill(const int K, const std::vector<Point>& centroids,
 	out.convertTo(out, CV_8U);
 }
 
-void kmeans(const Mat& data, const int K, Mat& out) {
+void kmeans(const Mat& data, const unsigned K, Mat& out, const unsigned iter = 10) {
 	std::vector<Point> centroids;
 	std::vector<std::vector<Point>> clusters(K);
 	std::vector<double> distances(K);
 	generate_rand_indices(data, K, centroids);
-	#define cent_i centroids[k].x
-	#define cent_j centroids[k].y
 	bool done = false;
 	auto acc_func = [](Point& p1, Point& p2)->Point {
 		return Point(p1.x+p2.x, p1.y+p2.y);
 	};
-	while (!done) {
+	for (unsigned it = 0; it < iter; it++) {
 		// предварительна€ очитска кластеров
 		for (unsigned k = 0; k < K; k++) clusters[k].clear();
 		for (unsigned i = 0; i < data.rows; i++)
-			for (unsigned j = 0; j < data.rows; j++) {
+			for (unsigned j = 0; j < data.cols; j++) {
 				for (unsigned k = 0; k < K; k++) {
 					// евклидово рассто€ние
-					double pw = pow(data.at<Vec3b>(i, j)[0] - data.at<Vec3b>(cent_i, cent_j)[0], 2);
-					std::cout << pw << std::endl;
-					pw++;
-					distances[k] = sqrt(pow(data.at<Vec3b>(i, j)[0] - data.at<Vec3b>(cent_i, cent_j)[0], 2) +
-						pow(data.at<Vec3b>(i, j)[1] - data.at<Vec3b>(cent_i, cent_j)[1], 2) +
-						pow(data.at<Vec3b>(i, j)[2] - data.at<Vec3b>(cent_i, cent_j)[2], 2));
+					distances[k] = sqrt(pow(data.at<Vec3b>(i, j)[0] - data.at<Vec3b>(centroids[k].x, centroids[k].y)[0], 2) +
+						pow(data.at<Vec3b>(i, j)[1] - data.at<Vec3b>(centroids[k].x, centroids[k].y)[1], 2) +
+						pow(data.at<Vec3b>(i, j)[2] - data.at<Vec3b>(centroids[k].x, centroids[k].y)[2], 2));
 				}
 				// ищем минимальное рассто€ние = ищем индекс минимального эл-та
 				unsigned k = std::min_element(distances.begin(), distances.end()) - distances.begin();
-				std::cout << "K in cycle " << k << std::endl;
 				clusters[k].push_back(Point(i, j));
 			}
 		unsigned done_count = 0;
 		// пересчет центроидов
 		for (unsigned k = 0; k < K; k++) {
-			Point sum = std::accumulate(clusters[k].begin(), clusters[k].end(), centroids[k], acc_func);
-			std::cout << "k " << k << " x " << sum.x << " y " << sum.y << " clust size " << clusters[k].size() << std::endl;
-			Point avg(sum.x / clusters[k].size(), sum.y / clusters[k].size());
-			if (avg.x == centroids[k].x && avg.y == centroids[k].y) done_count++;
-			else centroids[k] = avg;
+			if (clusters[k].size()) {
+				Point sum = std::accumulate(clusters[k].begin(), clusters[k].end(), centroids[k], acc_func);
+				Point avg(sum.x / clusters[k].size(), sum.y / clusters[k].size());
+				if (avg.x == centroids[k].x && avg.y == centroids[k].y) done_count++;
+				else centroids[k] = avg;
+			}
 		}
 		if (done_count == K) done = true;
 	}
@@ -122,8 +118,21 @@ int main(int argc, char* argv[])
 {
 	setlocale(LC_ALL, "Russian");
 	Mat img = imread("E:/kmeans_img.png"), res = Mat::zeros(img.rows, img. cols, CV_8U);
-	kmeans(img, 4, res);
-	show(img, res, "Original", "Clustered");
+	auto show_lam = [&]() {show(img, res, "Original", "Clustered");};
+	while (true) {
+		std::cout << "¬ведите кол-во кластеров, -1 дл€ выхода > ";
+		int k = 0, iter = 0;
+		std::cin >> k;
+		std::cout << std::endl;
+		if (k == -1) break;
+		std::cout << "¬ведите кол-во итераций > ";
+		std::cin >> iter;
+		std::cout << std::endl;
+		if (k * iter <= 0) std::cout << "ƒанные введены неверно" << std::endl;
+		kmeans(img, k, res, iter);
+		std::thread(show_lam).detach();
+		system("cls");
+	}
 	return 0;
 }
 #endif
