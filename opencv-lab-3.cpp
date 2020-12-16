@@ -96,17 +96,14 @@ void kmeans(const Mat& data, const unsigned K, Mat& out, const unsigned iter = 1
 				unsigned k = std::min_element(distances.begin(), distances.end()) - distances.begin();
 				clusters[k].push_back(Point(i, j));
 			}
-		unsigned done_count = 0;
 		// пересчет центроидов
 		for (unsigned k = 0; k < K; k++) {
 			if (clusters[k].size()) {
 				Point sum = std::accumulate(clusters[k].begin(), clusters[k].end(), centroids[k], acc_func);
 				Point avg(sum.x / clusters[k].size(), sum.y / clusters[k].size());
-				if (avg.x == centroids[k].x && avg.y == centroids[k].y) done_count++;
-				else centroids[k] = avg;
+				centroids[k] = avg;
 			}
 		}
-		if (done_count == K) done = true;
 	}
 	cluster_fill(K, centroids, clusters, out);
 }
